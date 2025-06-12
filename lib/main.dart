@@ -2,9 +2,16 @@ import 'package:flutter/material.dart';
 import 'package:reservasiku_colab_t2/screens/splash_screen.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:get/get.dart';
-import '../../utils/app_routes.dart';
+import 'package:reservasiku_colab_t2/utils/app_routes.dart';
+import 'package:reservasiku_colab_t2/controllers/nav_controller.dart'; // Tambahkan ini
 
-void main() {
+void main() async {
+  // Pastikan binding sebelum runApp
+  WidgetsFlutterBinding.ensureInitialized();
+
+  // Inisialisasi NavController
+  Get.put(NavController());
+
   runApp(const MyApp());
 }
 
@@ -25,7 +32,7 @@ class MyApp extends StatelessWidget {
       ),
       initialRoute: AppRoutes.splash,
       getPages: AppRoutes.routes,
-      home: SplashScreen(),
+      home: const SplashScreen(), // gunakan const jika memungkinkan
     );
   }
 }
