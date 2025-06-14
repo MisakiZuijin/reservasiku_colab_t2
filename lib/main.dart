@@ -23,8 +23,8 @@ class MyApp extends StatelessWidget {
           seedColor: Colors.lightGreen.shade600,
         ),
       ),
-      initialRoute: AppRoutes.splash,
-      getPages: AppRoutes.routes,
+      // initialRoute: AppRoutes.splash,
+      // getPages: AppRoutes.routes,
       home: SplashScreen(),
     );
   }
