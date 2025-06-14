@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../utils/app_routes.dart';
+import '../../services/auth_service.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -22,14 +23,22 @@ class _LoginScreenState extends State<LoginScreen> {
     });
   }
 
-  void _login() {
+  void _login() async {
     if (_formKey.currentState!.validate()) {
       final email = _emailController.text.trim();
       final password = _passwordController.text;
-      if (email == 'admin@email.com' && password == 'admin123') {
-        Get.offNamed(AppRoutes.admin);
-      } else if (email == 'user@email.com' && password == 'user123') {
-        Get.offNamed(AppRoutes.users);
+
+      final auth = AuthService();
+      final isValid = await auth.login(email, password);
+
+      if (isValid) {
+        final role = await auth.getUserRole(email);
+
+        if (role == 'Admin') {
+          Get.offNamed(AppRoutes.admin);
+        } else {
+          Get.offNamed(AppRoutes.users);
+        }
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Email atau password salah')),

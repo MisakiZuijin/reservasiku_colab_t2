@@ -2,14 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:get/get.dart';
 import 'utils/app_routes.dart';
-import 'utils/constants.dart';
+import 'utils/supabase_client.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await Supabase.initialize(
-    url: supabaseUrl,
-    anonKey: supabaseAnonKey,
-  );
+  await SupabaseConfig.init();
   runApp(const MyApp());
 }
 

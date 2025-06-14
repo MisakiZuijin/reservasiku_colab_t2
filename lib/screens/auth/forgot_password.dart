@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../utils/app_routes.dart';
+import '../../services/auth_service.dart';
 
 class ForgotPasswordScreen extends StatefulWidget {
   const ForgotPasswordScreen({super.key});
@@ -20,21 +21,34 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
     super.dispose();
   }
 
-  void _sendResetEmail() {
+  void _sendResetEmail() async {
     if (_formKey.currentState!.validate()) {
-      setState(() {
-        _emailSent = true;
-      });
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Link reset password telah dikirim ke email Anda'),
-        ),
+      bool userExists = await AuthService().checkUserEmail(
+        _emailController.text,
       );
+
+      if (userExists) {
+        setState(() {
+          _emailSent = true;
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Link reset password telah dikirim (simulasi)'),
+          ),
+        );
+      } else {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('Email tidak ditemukan')));
+      }
     }
   }
 
   void _goToResetPassword() {
-    Get.to(const ResetPasswordScreen());
+    Get.to(
+      const ResetPasswordScreen(),
+      arguments: {'email': _emailController.text},
+    );
   }
 
   @override
@@ -143,12 +157,23 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
     super.dispose();
   }
 
-  void _resetPassword() {
+  void _resetPassword() async {
     if (_formKey.currentState!.validate()) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('Password berhasil diubah')));
-      Get.offAllNamed(AppRoutes.login);
+      bool success = await AuthService().resetPassword(
+        Get.arguments['email'], // kirim email lewat Get.to()
+        _passwordController.text,
+      );
+
+      if (success) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Password berhasil diubah')),
+        );
+        Get.offAllNamed(AppRoutes.login);
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Gagal mengubah password')),
+        );
+      }
     }
   }
 
