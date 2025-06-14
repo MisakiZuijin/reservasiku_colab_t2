@@ -27,9 +27,9 @@ class _LoginScreenState extends State<LoginScreen> {
       final email = _emailController.text.trim();
       final password = _passwordController.text;
       if (email == 'admin@email.com' && password == 'admin123') {
-        Get.offNamed(AppRoutes.home); 
+        Get.offNamed(AppRoutes.admin);
       } else if (email == 'user@email.com' && password == 'user123') {
-        Get.offNamed(AppRoutes.home); 
+        Get.offNamed(AppRoutes.users);
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Email atau password salah')),
@@ -88,7 +88,9 @@ class _LoginScreenState extends State<LoginScreen> {
                     border: const OutlineInputBorder(),
                     suffixIcon: IconButton(
                       icon: Icon(
-                        _obscurePassword ? Icons.visibility_off : Icons.visibility,
+                        _obscurePassword
+                            ? Icons.visibility_off
+                            : Icons.visibility,
                       ),
                       onPressed: _togglePasswordVisibility,
                     ),
