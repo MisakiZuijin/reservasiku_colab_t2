@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'dart:async';
-import 'package:reservasiku_colab_t2/screens/home/dummy.dart';
+import 'package:get/get.dart';
+import '../utils/app_routes.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -13,11 +14,8 @@ class _SplashScreenState extends State<SplashScreen> {
   @override
   void initState() {
     super.initState();
-    Timer(const Duration(milliseconds: 3000), () {
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (context) => const DummyScreen()),
-      );
+    Timer(const Duration(seconds: 3), () {
+      Get.offNamed(AppRoutes.login);
     });
   }
 
@@ -26,7 +24,7 @@ class _SplashScreenState extends State<SplashScreen> {
     return Scaffold(
       backgroundColor: const Color.fromRGBO(89, 255, 0, 1),
       body: Center(
-        child: Image.asset("/images/Logo_White.png", height: 250, width: 250),
+        child: Image.asset('assets/images/Logo_White.png', height: 250, width: 250),
       ),
     );
   }

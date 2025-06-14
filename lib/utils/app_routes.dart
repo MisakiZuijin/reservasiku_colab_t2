@@ -8,6 +8,7 @@ import '../../screens/home/users/dashboard_users.dart';
 import '../../screens/menu_room/list_menu_room.dart';
 import '../../screens/profile/profile.dart';
 import '../../screens/stats/stats.dart';
+import '../../screens/auth/forgot_password.dart';
 
 class AppRoutes {
   static const String splash = '/';
@@ -19,6 +20,7 @@ class AppRoutes {
   static const String listroom = '/room';
   static const String profile = '/profile';
   static const String stats = '/stats';
+  static const String forgotPassword = '/forgot-password';
 
   static final routes = [
     GetPage(name: splash, page: () => const SplashScreen()),
@@ -30,5 +32,6 @@ class AppRoutes {
     GetPage(name: listroom, page: () => const ListMenuRoomScreen()),
     GetPage(name: profile, page: () => const ProfileScreen()),
     GetPage(name: stats, page: () => const StatsScreen()),
+    GetPage(name: forgotPassword, page: () => const ForgotPasswordScreen()),
   ];
 }
