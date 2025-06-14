@@ -51,8 +51,11 @@ class _ReservationFormState extends State<ReservationForm> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Form Reservasi"),
-        backgroundColor: Colors.green,
+        title: const Text(
+          "Form Reservasi",
+          style: TextStyle(color: Colors.white),
+        ),
+        backgroundColor: const Color.fromRGBO(89, 255, 0, 1),
       ),
       body: Form(
         key: _formKey,
@@ -170,7 +173,7 @@ class _ReservationFormState extends State<ReservationForm> {
 
               // Tombol Konfirmasi
               ElevatedButton.icon(
-                icon: const Icon(Icons.check),
+                icon: const Icon(Icons.check, color: Colors.white),
                 // Di bagian onPressed tombol konfirmasi:
                 onPressed: () {
                   if (_formKey.currentState!.validate() &&
@@ -213,9 +216,12 @@ class _ReservationFormState extends State<ReservationForm> {
                     );
                   }
                 },
-                label: const Text("Konfirmasi Reservasi"),
+                label: const Text(
+                  "Konfirmasi Reservasi",
+                  style: TextStyle(color: Colors.white),
+                ),
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.green,
+                  backgroundColor: const Color.fromRGBO(89, 255, 0, 1),
                   padding: const EdgeInsets.symmetric(vertical: 16),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12),

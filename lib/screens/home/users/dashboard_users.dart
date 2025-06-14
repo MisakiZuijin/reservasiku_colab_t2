@@ -13,8 +13,20 @@ class DashboardUsersScreen extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Selamat Datang di RestoKu"),
-        backgroundColor: Colors.green,
+        leading: Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: Image.asset(
+            "assets/images/Logo_White.png",
+            height: 10,
+            width: 10,
+            fit: BoxFit.cover,
+          ),
+        ),
+        title: Text(
+          "Selamat Datang di Reservasiku",
+          style: TextStyle(color: Colors.white),
+        ),
+        backgroundColor: const Color.fromRGBO(89, 255, 0, 1),
         elevation: 4,
       ),
       body: Obx(() {
@@ -30,7 +42,7 @@ class DashboardUsersScreen extends StatelessWidget {
                 width: double.infinity,
                 padding: const EdgeInsets.all(20),
                 decoration: BoxDecoration(
-                  color: Colors.green.shade100,
+                  color: const Color.fromRGBO(173, 255, 128, 1),
                   borderRadius: BorderRadius.circular(16),
                 ),
                 child: const Column(

@@ -37,7 +37,7 @@ class InvoiceScreen extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: const Text("Invoice Reservasi"),
-        backgroundColor: Colors.green,
+        backgroundColor: const Color.fromRGBO(89, 255, 0, 1),
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
@@ -46,7 +46,11 @@ class InvoiceScreen extends StatelessWidget {
           children: [
             // Header
             const Center(
-              child: Icon(Icons.check_circle, color: Colors.green, size: 80),
+              child: Icon(
+                Icons.check_circle,
+                color: const Color.fromRGBO(89, 255, 0, 1),
+                size: 80,
+              ),
             ),
             const Center(
               child: Text(
@@ -115,7 +119,7 @@ class InvoiceScreen extends StatelessWidget {
                       style: TextStyle(
                         fontSize: 24,
                         fontWeight: FontWeight.bold,
-                        color: Colors.green,
+                        color: const Color.fromRGBO(89, 255, 0, 1),
                       ),
                     ),
                     const SizedBox(height: 16),
@@ -140,13 +144,16 @@ class InvoiceScreen extends StatelessWidget {
               child: ElevatedButton(
                 onPressed: () => _showQRISDialog(context),
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.green,
+                  backgroundColor: const Color.fromRGBO(89, 255, 0, 1),
                   padding: const EdgeInsets.symmetric(vertical: 16),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12),
                   ),
                 ),
-                child: const Text("Lanjutkan Pembayaran"),
+                child: const Text(
+                  "Lanjutkan Pembayaran",
+                  style: TextStyle(color: Colors.white),
+                ),
               ),
             ),
           ],
@@ -177,6 +184,7 @@ class InvoiceScreen extends StatelessWidget {
   Widget _buildPaymentMethod(String method, IconData icon) {
     return Card(
       margin: const EdgeInsets.symmetric(vertical: 8),
+      clipBehavior: Clip.antiAlias,
       child: ListTile(
         leading: Icon(icon),
         title: Text(method),
@@ -260,7 +268,7 @@ class InvoiceScreen extends StatelessWidget {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    TextButton(
+                    ElevatedButton(
                       onPressed: () => Get.back(),
                       child: const Text("Batal"),
                     ),
@@ -298,14 +306,14 @@ class InvoiceScreen extends StatelessWidget {
               "Silakan tunggu konfirmasi dari admin.",
             ),
             actions: [
-              TextButton(
+              ElevatedButton(
                 onPressed: () {
                   Get.back(); // Tutup dialog
                   Get.offAll(
                     () => const DashboardUsersScreen(),
                   ); // Kembali ke dashboard
                 },
-                child: const Text("OK"),
+                child: const Text("Ok"),
               ),
             ],
           ),

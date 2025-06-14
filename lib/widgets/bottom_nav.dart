@@ -77,7 +77,7 @@ class BottomNav extends StatelessWidget {
               AnimatedPositioned(
                 duration: const Duration(milliseconds: 250),
                 curve: Curves.easeInOut,
-                bottom: isProfile ? 25 : 10,
+                bottom: isProfile ? 25 : 25,
                 child: GestureDetector(
                   onTap: () {
                     if (!isProfile) _handleNavigation(1);
@@ -92,13 +92,11 @@ class BottomNav extends StatelessWidget {
                             ? CircleAvatar(
                               key: const ValueKey("profile"),
                               radius: 30,
-                              backgroundColor: Colors.white,
-                              child: const CircleAvatar(
-                                radius: 26,
-                                backgroundImage: AssetImage(
-                                  "assets/profile.png",
-                                ),
-                                backgroundColor: Colors.transparent,
+                              backgroundColor: const Color.fromARGB(
+                                0,
+                                255,
+                                255,
+                                255,
                               ),
                             )
                             : Container(
