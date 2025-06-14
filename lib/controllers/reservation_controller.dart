@@ -3,20 +3,26 @@ import 'package:get/get.dart';
 import '../models/reservation_model.dart';
 
 class ReservationController extends GetxController {
-  final RxList<Reservation> _reservations = <Reservation>[].obs;
-
-  List<Reservation> get reservations => _reservations;
+  final RxList<Reservation> reservations = <Reservation>[].obs;
 
   void addReservation(Reservation newReservation) {
-    _reservations.add(newReservation);
-    _reservations.sort((a, b) => a.date.compareTo(b.date));
+    reservations.add(newReservation);
+    reservations.sort((a, b) => a.date.compareTo(b.date));
   }
 
   void updateReservationStatus(String id, String newStatus) {
-    final index = _reservations.indexWhere((res) => res.id == id);
+    final index = reservations.indexWhere((res) => res.id == id);
     if (index != -1) {
-      _reservations[index] = _reservations[index].copyWith(status: newStatus);
-      _reservations.refresh();
+      reservations[index] = reservations[index].copyWith(status: newStatus);
+      reservations.refresh();
+    }
+  }
+
+  Reservation? getReservationById(String id) {
+    try {
+      return reservations.firstWhere((res) => res.id == id);
+    } catch (e) {
+      return null;
     }
   }
 }
@@ -30,6 +36,7 @@ extension ReservationExtension on Reservation {
     int? people,
     String? status,
     String? paymentProofUrl,
+    String? notes, // Tambahkan parameter notes
   }) {
     return Reservation(
       id: id ?? this.id,
@@ -39,6 +46,7 @@ extension ReservationExtension on Reservation {
       people: people ?? this.people,
       status: status ?? this.status,
       paymentProofUrl: paymentProofUrl ?? this.paymentProofUrl,
+      notes: notes ?? this.notes, // Tambahkan notes
     );
   }
 }

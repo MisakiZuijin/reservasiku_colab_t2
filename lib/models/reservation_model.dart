@@ -9,6 +9,8 @@ class Reservation {
   final String status; // 'pending', 'confirmed', 'rejected'
   final String? paymentProofUrl;
 
+  final String? notes; // Tambahkan ini
+
   Reservation({
     required this.id,
     required this.restaurantName,
@@ -17,6 +19,7 @@ class Reservation {
     required this.people,
     required this.status,
     this.paymentProofUrl,
+    this.notes, // Tambahkan ini
   });
 
   // Helper method to get status color

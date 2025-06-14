@@ -180,11 +180,12 @@ class _ReservationFormState extends State<ReservationForm> {
                     final newReservation = Reservation(
                       id: DateTime.now().millisecondsSinceEpoch.toString(),
                       restaurantName:
-                          "Resto Favorit", // Ganti dengan nama restoran sebenarnya
+                          "Resto Favorit", // atau ambil dari input user
                       date: selectedDate!,
                       time: selectedTime!,
                       people: peopleCount,
                       status: 'pending',
+                      notes: notesController.text, // tambahkan notes
                     );
 
                     // Simpan ke controller
@@ -192,8 +193,8 @@ class _ReservationFormState extends State<ReservationForm> {
                         Get.find<ReservationController>();
                     reservationController.addReservation(newReservation);
 
-                    // Navigasi ke invoice
-                    Get.to(
+                    // Navigasi ke invoice dan hapus semua route sebelumnya
+                    Get.offAll(
                       () => InvoiceScreen(
                         name: nameController.text,
                         phone: phoneController.text,

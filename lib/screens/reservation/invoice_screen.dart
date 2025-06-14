@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-
+import 'package:intl/intl.dart';
+import 'package:reservasiku_colab_t2/screens/home/users/dashboard_users.dart';
 import '../../controllers/reservation_controller.dart';
 
 class InvoiceScreen extends StatelessWidget {
@@ -22,6 +23,14 @@ class InvoiceScreen extends StatelessWidget {
     required this.notes,
     required this.reservationId,
   });
+
+  String get totalPrice {
+    return NumberFormat.currency(
+      locale: 'id',
+      symbol: 'Rp ',
+      decimalDigits: 0,
+    ).format(people * 20000);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -101,8 +110,8 @@ class InvoiceScreen extends StatelessWidget {
                       "Total yang harus dibayar:",
                       style: TextStyle(fontSize: 16),
                     ),
-                    const Text(
-                      "Rp 50.000",
+                    Text(
+                      totalPrice,
                       style: TextStyle(
                         fontSize: 24,
                         fontWeight: FontWeight.bold,
@@ -201,8 +210,8 @@ class InvoiceScreen extends StatelessWidget {
                 const SizedBox(height: 16),
                 const Text("Scan QR Code di atas untuk melakukan pembayaran"),
                 const SizedBox(height: 16),
-                const Text(
-                  "Total: Rp 50.000",
+                Text(
+                  "Total: $totalPrice",
                   style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
                 ),
                 const SizedBox(height: 24),
@@ -292,7 +301,9 @@ class InvoiceScreen extends StatelessWidget {
               TextButton(
                 onPressed: () {
                   Get.back(); // Tutup dialog
-                  Get.back(); // Kembali ke dashboard
+                  Get.offAll(
+                    () => const DashboardUsersScreen(),
+                  ); // Kembali ke dashboard
                 },
                 child: const Text("OK"),
               ),
