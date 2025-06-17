@@ -2,18 +2,12 @@ import 'package:flutter/material.dart';
 import 'dart:async';
 import 'package:get/get.dart';
 
-
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
 
   @override
   State<SplashScreen> createState() => _SplashScreenState();
 }
-
-class _SplashScreenState extends State<SplashScreen>
-    with SingleTickerProviderStateMixin {
-  late AnimationController _animationController;
-  late Animation<double> _fadeAnimation;
 
 class _SplashScreenState extends State<SplashScreen>
     with SingleTickerProviderStateMixin {
@@ -55,7 +49,7 @@ class _SplashScreenState extends State<SplashScreen>
         child: FadeTransition(
           opacity: _fadeAnimation,
           child: Image.asset(
-            "assets/images/Logo_White.png", 
+            "assets/images/Logo_White.png",
             height: 200,
             width: 200,
           ),

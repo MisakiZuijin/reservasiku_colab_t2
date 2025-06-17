@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import '../../utils/app_routes.dart';
+import '../../utils/app_route.dart';
 import '../../services/auth_service.dart';
 
 class RegisterScreen extends StatefulWidget {

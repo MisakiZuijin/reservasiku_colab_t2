@@ -1,10 +1,19 @@
 import 'package:flutter/material.dart';
+import 'package:reservasiku_colab_t2/controllers/reservation_controller.dart';
+import 'package:reservasiku_colab_t2/controllers/nav_controller.dart';
 import 'package:reservasiku_colab_t2/screens/splash_screen.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:get/get.dart';
-import '../../utils/app_routes.dart';
+import 'utils/app_route.dart';
+import 'utils/supabase_client.dart';
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+
+  Get.put(NavController());
+  Get.put(ReservationController());
+
+  await SupabaseConfig.init();
   runApp(const MyApp());
 }
 
