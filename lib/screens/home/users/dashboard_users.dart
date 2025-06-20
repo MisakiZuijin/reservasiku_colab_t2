@@ -4,9 +4,14 @@ import '../../../controllers/reservation_controller.dart';
 import '../../../widgets/bottom_nav.dart';
 import '../../reservation/invoice_screen.dart';
 
-class DashboardUsersScreen extends StatelessWidget {
+class DashboardUsersScreen extends StatefulWidget {
   const DashboardUsersScreen({super.key});
 
+  @override
+  State<DashboardUsersScreen> createState() => _DashboardUsersScreenState();
+}
+
+class _DashboardUsersScreenState extends State<DashboardUsersScreen> {
   @override
   Widget build(BuildContext context) {
     final ReservationController reservationController = Get.find();

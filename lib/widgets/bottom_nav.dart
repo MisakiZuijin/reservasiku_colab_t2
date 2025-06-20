@@ -18,12 +18,16 @@ class BottomNav extends StatelessWidget {
           Get.offAll(() => const DashboardUsersScreen());
           break;
         case 1:
+          navController.handleInvoice();
           Get.to(() => const ReservationForm());
           break;
         case 2:
           Get.offAll(() => const ProfileScreen());
           break;
       }
+    } else {
+      navController.isLogoutActive(true);
+      Get.offAll(() => const DashboardUsersScreen());
     }
   }
 

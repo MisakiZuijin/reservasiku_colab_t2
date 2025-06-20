@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'dart:async';
 import 'package:get/get.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+import '../../utils/app_route.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -30,9 +32,25 @@ class _SplashScreenState extends State<SplashScreen>
 
     _animationController.forward();
 
-    Timer(const Duration(seconds: 3), () {
-      Get.offNamed('/login');
-    });
+    _handleNavigation();
+  }
+
+  Future<void> _handleNavigation() async {
+    await Future.delayed(const Duration(seconds: 2));
+    final uri = Uri.base;
+
+    if (uri.path == '/reset-password' && uri.queryParameters['code'] != null) {
+      final code = uri.queryParameters['code'];
+      Get.offAllNamed('/reset-password', arguments: code);
+      return;
+    }
+
+    final session = Supabase.instance.client.auth.currentSession;
+    if (session != null) {
+      Get.offAllNamed(AppRoutes.users);
+    } else {
+      Get.offAllNamed(AppRoutes.login);
+    }
   }
 
   @override

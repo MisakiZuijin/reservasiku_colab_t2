@@ -1,92 +1,162 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:flutter/foundation.dart';
+import 'dart:typed_data';
+import 'dart:io' as io;
 import '../utils/supabase_client.dart';
 
 class AuthService {
   final SupabaseClient _client = SupabaseConfig.client;
 
-  Future<bool> login(String email, String password) async {
-    final response =
-        await _client
-            .from('Users')
-            .select('email, password, role')
-            .eq('email', email)
-            .single();
+  Future<String?> register(
+    String email,
+    String password,
+    String username,
+  ) async {
+    try {
+      final response = await _client.auth.signUp(
+        email: email,
+        password: password,
+      );
+      final user = response.user;
+      if (user == null) return 'Registrasi gagal.';
 
-    if (response == null) return false;
+      await _client.from('Users').insert({
+        'id_user': user.id,
+        'username': username,
+        'role': 'User',
+        'image': null,
+      });
 
-    if (response['password'] == password) {
-      return true;
+      return null;
+    } on AuthException catch (e) {
+      return e.message;
+    } catch (e) {
+      return 'Error: ${e.toString()}';
     }
-    return false;
   }
 
-  Future<String?> getUserRole(String email) async {
+  Future<String?> login(String email, String password) async {
     try {
-      final response =
+      await _client.auth.signInWithPassword(email: email, password: password);
+      return null;
+    } on AuthException catch (e) {
+      return e.message;
+    } catch (e) {
+      return 'Error: ${e.toString()}';
+    }
+  }
+
+  Future<String?> getUserRole() async {
+    try {
+      final user = _client.auth.currentUser;
+      if (user == null) return null;
+
+      final data =
           await _client
               .from('Users')
               .select('role')
-              .eq('email', email)
+              .eq('id_user', user.id)
               .single();
-      return response?['role'];
-    } catch (e) {
-      print('Get Role error: $e');
+
+      return data['role'];
+    } catch (_) {
       return null;
     }
   }
 
-  Future<String?> register(String email, String password) async {
-    try {
-      final username = email.split('@')[0];
+  Future<void> logout() async {
+    await _client.auth.signOut();
+  }
 
-      await _client.from('Users').insert({
-        'email': email,
-        'password': password, // 🔔 Note: Password sebaiknya di-hash.
-        'username': username,
-        'role': 'User',
-      });
-      return null; // sukses
+  Future<void> updateProfile({
+    required String username,
+    String? avatarUrl,
+  }) async {
+    final user = _client.auth.currentUser;
+    if (user == null) throw Exception('User tidak ditemukan.');
+
+    await _client
+        .from('Users')
+        .update({
+          'username': username,
+          if (avatarUrl != null) 'image': avatarUrl,
+        })
+        .eq('id_user', user.id);
+  }
+
+  Future<String> uploadImage({
+    required String bucket,
+    required String fileName,
+    io.File? file, // untuk mobile
+    Uint8List? bytes, // untuk web
+  }) async {
+    final storage = _client.storage.from(bucket);
+
+    if (kIsWeb) {
+      if (bytes == null) throw Exception('Image bytes is required for Web.');
+      await storage.uploadBinary(
+        fileName,
+        bytes,
+        fileOptions: const FileOptions(upsert: true),
+      );
+    } else {
+      if (file == null) throw Exception('File is required for Mobile.');
+      await storage.upload(
+        fileName,
+        file,
+        fileOptions: const FileOptions(upsert: true),
+      );
+    }
+
+    final publicUrl = storage.getPublicUrl(fileName);
+    return publicUrl;
+  }
+
+  Future<Map<String, dynamic>?> getProfile() async {
+    final user = _client.auth.currentUser;
+    if (user == null) return null;
+
+    final data =
+        await _client
+            .from('Users')
+            .select('username, image')
+            .eq('id_user', user.id)
+            .single();
+
+    return data;
+  }
+
+  Future<String?> resetPassword(String email) async {
+    try {
+      await _client.auth.resetPasswordForEmail(
+        email,
+        redirectTo:
+            'http://localhost:59566/reset-password', // <- PENTING sesuaikan dengan environment
+      );
+      return null;
+    } on AuthException catch (e) {
+      return e.message;
     } catch (e) {
-      print('Register error: $e');
-      return e.toString(); // kirim error ke UI
+      return 'Error: ${e.toString()}';
     }
   }
 
-  Future<bool> checkUserEmail(String email) async {
+  Future<void> resetPasswordWithCode(String code, String newPassword) async {
     try {
-      final response =
-          await _client
-              .from('Users')
-              .select('email')
-              .eq('email', email)
-              .maybeSingle();
+      final response = await Supabase.instance.client.auth.verifyOTP(
+        type: OtpType.recovery,
+        token: code,
+      );
 
-      return response != null;
-    } catch (e) {
-      print('Check email error: $e');
-      return false;
-    }
-  }
-
-  Future<bool> resetPassword(String email, String newPassword) async {
-    try {
-      final data =
-          await _client
-              .from('Users')
-              .update({'password': newPassword})
-              .eq('email', email)
-              .select();
-
-      if (data != null && data.isNotEmpty) {
-        print("Password berhasil diubah untuk: $email");
-        return true;
+      if (response.session == null) {
+        throw const AuthException('Code tidak valid atau sudah expired.');
       }
 
-      print("Tidak ada data yang diubah.");
-      return false;
-    } catch (e) {
-      print("Reset password error: $e");
-      return false;
+      await Supabase.instance.client.auth.updateUser(
+        UserAttributes(password: newPassword),
+      );
+    } on AuthException catch (e) {
+      throw Exception(e.message);
     }
   }
 }

@@ -26,13 +26,13 @@ class _LoginScreenState extends State<LoginScreen> {
   void _login() async {
     if (_formKey.currentState!.validate()) {
       final email = _emailController.text.trim();
-      final password = _passwordController.text;
+      final password = _passwordController.text.trim();
 
       final auth = AuthService();
-      final isValid = await auth.login(email, password);
+      final error = await auth.login(email, password);
 
-      if (isValid) {
-        final role = await auth.getUserRole(email);
+      if (error == null) {
+        final role = await auth.getUserRole();
 
         if (role == 'Admin') {
           Get.offNamed(AppRoutes.admin);
@@ -40,9 +40,9 @@ class _LoginScreenState extends State<LoginScreen> {
           Get.offNamed(AppRoutes.users);
         }
       } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Email atau password salah')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(error)));
       }
     }
   }
