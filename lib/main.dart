@@ -9,10 +9,10 @@ import 'utils/supabase_client.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
+  await SupabaseConfig.init();
+
   Get.put(NavController());
   Get.put(ReservationController());
-
-  await SupabaseConfig.init();
   runApp(const MyApp());
 }
 

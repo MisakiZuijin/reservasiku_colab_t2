@@ -10,6 +10,8 @@ class InvoiceViewOnlyScreen extends StatelessWidget {
   final String notes;
   final String reservationId;
   final String status;
+  final num totalHarga;
+  final String? imgPesanan; // ✅ TAMBAHKAN URL GAMBAR
 
   const InvoiceViewOnlyScreen({
     super.key,
@@ -21,14 +23,16 @@ class InvoiceViewOnlyScreen extends StatelessWidget {
     required this.notes,
     required this.reservationId,
     required this.status,
+    required this.totalHarga,
+    this.imgPesanan, // ✅
   });
 
-  String get totalPrice {
+  String get formattedTotalHarga {
     return NumberFormat.currency(
       locale: 'id',
       symbol: 'Rp ',
       decimalDigits: 0,
-    ).format(people * 20000);
+    ).format(totalHarga);
   }
 
   @override
@@ -43,7 +47,6 @@ class InvoiceViewOnlyScreen extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Status
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
@@ -56,14 +59,11 @@ class InvoiceViewOnlyScreen extends StatelessWidget {
                   style: const TextStyle(
                     color: Colors.white,
                     fontWeight: FontWeight.bold,
-                    fontSize: 16,
                   ),
                 ),
               ),
             ),
             const SizedBox(height: 24),
-
-            // Detail Reservasi
             Card(
               elevation: 4,
               shape: RoundedRectangleBorder(
@@ -83,16 +83,39 @@ class InvoiceViewOnlyScreen extends StatelessWidget {
                     ),
                     const Divider(),
                     _buildDetailRow("Nama", name),
-                    _buildDetailRow("Nomor Telepon", phone),
+                    _buildDetailRow("No Telepon", phone),
                     _buildDetailRow("Tanggal", date),
                     _buildDetailRow("Waktu", time),
                     _buildDetailRow("Jumlah Orang", "$people Orang"),
                     if (notes.isNotEmpty) _buildDetailRow("Catatan", notes),
-                    _buildDetailRow("Total Pembayaran", totalPrice),
+                    _buildDetailRow("Total Pembayaran", formattedTotalHarga),
                   ],
                 ),
               ),
             ),
+            const SizedBox(height: 24),
+            if (imgPesanan != null && imgPesanan!.isNotEmpty)
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    "Bukti Pembayaran:",
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(height: 8),
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(12),
+                    child: Image.network(
+                      imgPesanan!,
+                      fit: BoxFit.cover,
+                      width: double.infinity,
+                      errorBuilder:
+                          (context, error, stackTrace) =>
+                              const Text("Gagal memuat gambar"),
+                    ),
+                  ),
+                ],
+              ),
           ],
         ),
       ),
@@ -120,12 +143,14 @@ class InvoiceViewOnlyScreen extends StatelessWidget {
 
   Color _getStatusColor(String status) {
     switch (status) {
-      case 'confirmed':
+      case 'Accept':
         return Colors.green;
-      case 'pending':
+      case 'Pending':
         return Colors.orange;
-      default:
+      case 'Reject':
         return Colors.red;
+      default:
+        return Colors.grey;
     }
   }
 }

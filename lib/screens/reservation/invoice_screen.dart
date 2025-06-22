@@ -1,8 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
+import 'package:flutter/foundation.dart';
+import 'dart:io';
 import 'package:reservasiku_colab_t2/screens/home/users/dashboard_users.dart';
+import 'package:image_picker/image_picker.dart';
 import '../../controllers/reservation_controller.dart';
+import '../../services/auth_service.dart';
+import '../../utils/supabase_client.dart';
 
 class InvoiceScreen extends StatefulWidget {
   final String name;
@@ -30,6 +35,8 @@ class InvoiceScreen extends StatefulWidget {
 
 class _InvoiceScreenState extends State<InvoiceScreen> {
   String? selectedPaymentMethod;
+  final supabase = SupabaseConfig.client;
+  bool _isUploading = false;
 
   String get totalPrice {
     return NumberFormat.currency(
@@ -39,8 +46,56 @@ class _InvoiceScreenState extends State<InvoiceScreen> {
     ).format(widget.people * 20000);
   }
 
+  Future<void> _pickAndUploadProof() async {
+    final picker = ImagePicker();
+    final pickedFile = await picker.pickImage(source: ImageSource.gallery);
+
+    if (pickedFile == null) {
+      Get.snackbar('Batal', 'Tidak ada gambar yang dipilih');
+      return;
+    }
+
+    setState(() => _isUploading = true);
+
+    final fileName =
+        '${widget.reservationId}_${DateTime.now().millisecondsSinceEpoch}.jpg';
+    String imgUrl;
+
+    try {
+      if (kIsWeb) {
+        final bytes = await pickedFile.readAsBytes();
+        imgUrl = await AuthService().uploadImage(
+          bucket: 'bukti-pembayaran',
+          fileName: fileName,
+          bytes: bytes,
+        );
+      } else {
+        final file = File(pickedFile.path);
+        imgUrl = await AuthService().uploadImage(
+          bucket: 'bukti-pembayaran',
+          fileName: fileName,
+          file: file,
+        );
+      }
+
+      await supabase
+          .from('Reservasi')
+          .update({'img_pesanan': imgUrl, 'konfirmasi_pesanan': 'Pending'})
+          .eq('id_reservasi', widget.reservationId);
+
+      _showPaymentConfirmationDialog(context);
+    } catch (e) {
+      Get.snackbar('Error', 'Gagal upload bukti pembayaran: $e');
+    } finally {
+      setState(() => _isUploading = false);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
+    if (_isUploading) {
+      return const Center(child: CircularProgressIndicator());
+    }
     return Scaffold(
       appBar: AppBar(
         title: const Text("Invoice Reservasi"),
@@ -138,14 +193,6 @@ class _InvoiceScreenState extends State<InvoiceScreen> {
                     const SizedBox(height: 8),
                     // Metode Pembayaran baru
                     _buildPaymentOption("QRIS", "assets/images/qris.png"),
-                    _buildPaymentOption(
-                      "Transfer Bank",
-                      "assets/images/bank.png",
-                    ),
-                    _buildPaymentOption(
-                      "Tunai di Tempat",
-                      "assets/images/cash.png",
-                    ),
                   ],
                 ),
               ),
@@ -156,7 +203,19 @@ class _InvoiceScreenState extends State<InvoiceScreen> {
             SizedBox(
               width: double.infinity,
               child: ElevatedButton(
-                onPressed: () => _showQRISDialog(context),
+                onPressed: () {
+                  if (selectedPaymentMethod == null) {
+                    Get.snackbar(
+                      'Pilih Metode Pembayaran',
+                      'Silakan pilih metode pembayaran terlebih dahulu.',
+                    );
+                    return;
+                  }
+
+                  if (selectedPaymentMethod == "QRIS") {
+                    _showQRISDialog(context);
+                  }
+                },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: const Color.fromRGBO(89, 255, 0, 1),
                   padding: const EdgeInsets.symmetric(vertical: 16),
@@ -198,12 +257,13 @@ class _InvoiceScreenState extends State<InvoiceScreen> {
   Widget _buildPaymentOption(String method, String iconPath) {
     return Card(
       margin: const EdgeInsets.symmetric(vertical: 8),
+      clipBehavior: Clip.antiAlias,
       child: RadioListTile<String>(
         title: Row(
           children: [
-            Image.asset(iconPath, width: 30, height: 30),
+            Image.asset(iconPath, width: 85),
             const SizedBox(width: 10),
-            Text(method),
+            Text(method, style: TextStyle(color: Colors.transparent)),
           ],
         ),
         value: method,
@@ -273,44 +333,32 @@ class _InvoiceScreenState extends State<InvoiceScreen> {
               children: [
                 const Text("Silakan upload bukti pembayaran Anda"),
                 const SizedBox(height: 16),
-                Container(
-                  height: 150,
-                  decoration: BoxDecoration(
-                    border: Border.all(color: Colors.grey),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: const Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(Icons.cloud_upload, size: 50),
-                      Text("Upload Bukti Pembayaran"),
-                    ],
+                InkWell(
+                  onTap: () async {
+                    Get.back(); // tutup dialog upload sebelum mulai upload
+                    await _pickAndUploadProof(); // buka image picker langsung
+                  },
+                  child: Container(
+                    height: 150,
+                    width: 150,
+                    decoration: BoxDecoration(
+                      border: Border.all(color: Colors.grey),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: const Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(Icons.cloud_upload, size: 50),
+                        SizedBox(height: 8),
+                        Text("Pilih Gambar"),
+                      ],
+                    ),
                   ),
                 ),
                 const SizedBox(height: 16),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    ElevatedButton(
-                      onPressed: () => Get.back(),
-                      child: const Text("Batal"),
-                    ),
-                    ElevatedButton(
-                      onPressed: () {
-                        // Update status reservasi
-                        final reservationController =
-                            Get.find<ReservationController>();
-                        reservationController.updateReservationStatus(
-                          widget.reservationId,
-                          'pending',
-                        );
-
-                        Get.back();
-                        _showPaymentConfirmationDialog(context);
-                      },
-                      child: const Text("Kirim"),
-                    ),
-                  ],
+                ElevatedButton(
+                  onPressed: () => Get.back(), // untuk membatalkan
+                  child: const Text("Batal"),
                 ),
               ],
             ),

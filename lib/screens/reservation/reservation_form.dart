@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
-import 'package:reservasiku_colab_t2/controllers/reservation_controller.dart';
-import 'package:reservasiku_colab_t2/models/reservation_model.dart';
+import '../../utils/supabase_client.dart';
+import '../../services/reservation_service.dart';
 import 'invoice_screen.dart';
 
 class ReservationForm extends StatefulWidget {
@@ -17,78 +17,131 @@ class _ReservationFormState extends State<ReservationForm> {
   final nameController = TextEditingController();
   final phoneController = TextEditingController();
   final notesController = TextEditingController();
+
   DateTime? selectedDate;
   TimeOfDay? selectedTime;
   int peopleCount = 2;
+  bool _isSubmitting = false;
+
+  final supabase = SupabaseConfig.client;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadUserName();
+  }
+
+  Future<void> _loadUserName() async {
+    try {
+      final user = supabase.auth.currentUser;
+      if (user != null) {
+        final data =
+            await supabase
+                .from('Users')
+                .select('username')
+                .eq('id_user', user.id)
+                .single();
+        setState(() {
+          nameController.text = data['username'] ?? '';
+        });
+      }
+    } catch (e) {
+      Get.snackbar('Error', 'Gagal memuat nama pengguna');
+    }
+  }
+
+  Future<void> _submitReservation() async {
+    if (_isSubmitting) return;
+    if (!_formKey.currentState!.validate() ||
+        selectedDate == null ||
+        selectedTime == null) {
+      Get.snackbar('Error', 'Harap lengkapi semua data reservasi');
+      return;
+    }
+
+    final user = supabase.auth.currentUser;
+    if (user == null) {
+      Get.snackbar('Error', 'Anda belum login');
+      return;
+    }
+
+    _isSubmitting = true;
+
+    try {
+      final reservationService = ReservationService();
+      final totalHarga = peopleCount * 20000;
+
+      final idReservasi = await reservationService.insertReservation(
+        idUser: user.id,
+        namaPemesan: nameController.text.trim(),
+        telpPemesan: phoneController.text.trim(),
+        tanggalPesanan: selectedDate!,
+        waktuPesanan: '${selectedTime!.hour}:${selectedTime!.minute}',
+        jumlahPesanan: peopleCount,
+        catatanPesanan: notesController.text.trim(),
+        totalHarga: totalHarga, // ← Tambahkan total harga
+      );
+
+      Get.offAll(
+        () => InvoiceScreen(
+          name: nameController.text,
+          phone: phoneController.text,
+          date: DateFormat('dd MMMM yyyy').format(selectedDate!),
+          time: selectedTime!.format(context),
+          people: peopleCount,
+          notes: notesController.text,
+          reservationId: idReservasi, // ← pakai id dari database
+        ),
+      );
+    } catch (e) {
+      Get.snackbar('Gagal', e.toString());
+    } finally {
+      _isSubmitting = false;
+    }
+  }
 
   Future<void> _selectDate(BuildContext context) async {
-    final DateTime? picked = await showDatePicker(
+    final picked = await showDatePicker(
       context: context,
       initialDate: DateTime.now(),
       firstDate: DateTime.now(),
       lastDate: DateTime.now().add(const Duration(days: 365)),
     );
     if (picked != null) {
-      // Jika memilih hari ini, pastikan waktu belum lewat
-      if (isSameDay(picked, DateTime.now())) {
-        final now = TimeOfDay.now();
-        if (selectedTime != null && selectedTime!.hour < now.hour ||
-            (selectedTime!.hour == now.hour &&
-                selectedTime!.minute <= now.minute)) {
-          // Reset waktu jika sudah lewat
-          setState(() {
-            selectedTime = null;
-          });
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text(
-                'Waktu yang dipilih sudah lewat, silakan pilih waktu lain',
-              ),
-            ),
-          );
-        }
-      }
       setState(() {
         selectedDate = picked;
+        selectedTime = null; // reset waktu agar tidak terjadi bentrok
       });
     }
   }
 
   Future<void> _selectTime(BuildContext context) async {
-    final now = DateTime.now();
-    final initialTime = TimeOfDay.now();
-
-    // Jika memilih hari ini, batasi waktu minimal
-    TimeOfDay? picked;
-    if (selectedDate != null && isSameDay(selectedDate!, now)) {
-      picked = await showTimePicker(
-        context: context,
-        initialTime: initialTime,
-        builder: (context, child) {
-          return MediaQuery(
-            data: MediaQuery.of(context).copyWith(alwaysUse24HourFormat: true),
-            child: child!,
-          );
-        },
-      );
-
-      // Validasi waktu tidak boleh kurang dari sekarang
-      if (picked != null &&
-          (picked.hour < initialTime.hour ||
-              (picked.hour == initialTime.hour &&
-                  picked.minute < initialTime.minute))) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Tidak bisa memilih waktu yang sudah lewat'),
-          ),
-        );
-        return;
-      }
-    } else {
-      picked = await showTimePicker(context: context, initialTime: initialTime);
+    if (selectedDate == null) {
+      Get.snackbar('Error', 'Pilih tanggal terlebih dahulu');
+      return;
     }
 
+    final picked = await showTimePicker(
+      context: context,
+      initialTime: TimeOfDay.now(),
+      builder: (context, child) {
+        return MediaQuery(
+          data: MediaQuery.of(context).copyWith(alwaysUse24HourFormat: true),
+          child: child!,
+        );
+      },
+    );
+
     if (picked != null) {
+      final now = DateTime.now();
+      if (isSameDay(selectedDate!, now)) {
+        final nowTime = TimeOfDay.now();
+        if (picked.hour < nowTime.hour ||
+            (picked.hour == nowTime.hour && picked.minute < nowTime.minute)) {
+          Get.snackbar('Error', 'Tidak bisa memilih waktu yang sudah lewat');
+          return;
+        }
+      }
       setState(() {
         selectedTime = picked;
       });
@@ -99,10 +152,7 @@ class _ReservationFormState extends State<ReservationForm> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text(
-          "Form Reservasi",
-          style: TextStyle(color: Colors.white),
-        ),
+        title: const Text("Form Reservasi"),
         backgroundColor: const Color.fromRGBO(89, 255, 0, 1),
       ),
       body: Form(
@@ -111,24 +161,16 @@ class _ReservationFormState extends State<ReservationForm> {
           padding: const EdgeInsets.all(16),
           child: ListView(
             children: [
-              // Nama
               TextFormField(
                 controller: nameController,
                 decoration: const InputDecoration(
-                  labelText: 'Nama Lengkap',
+                  labelText: 'Nama Pemesan',
                   prefixIcon: Icon(Icons.person),
                   border: OutlineInputBorder(),
                 ),
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Harap masukkan nama lengkap';
-                  }
-                  return null;
-                },
+                readOnly: true,
               ),
               const SizedBox(height: 16),
-
-              // Nomor Telepon
               TextFormField(
                 controller: phoneController,
                 decoration: const InputDecoration(
@@ -145,8 +187,6 @@ class _ReservationFormState extends State<ReservationForm> {
                 },
               ),
               const SizedBox(height: 16),
-
-              // Tanggal
               InkWell(
                 onTap: () => _selectDate(context),
                 child: InputDecorator(
@@ -163,8 +203,6 @@ class _ReservationFormState extends State<ReservationForm> {
                 ),
               ),
               const SizedBox(height: 16),
-
-              // Waktu
               InkWell(
                 onTap: () => _selectTime(context),
                 child: InputDecorator(
@@ -181,8 +219,6 @@ class _ReservationFormState extends State<ReservationForm> {
                 ),
               ),
               const SizedBox(height: 16),
-
-              // Jumlah Orang
               DropdownButtonFormField<int>(
                 value: peopleCount,
                 decoration: const InputDecoration(
@@ -206,8 +242,6 @@ class _ReservationFormState extends State<ReservationForm> {
                 },
               ),
               const SizedBox(height: 16),
-
-              // Catatan
               TextFormField(
                 controller: notesController,
                 decoration: const InputDecoration(
@@ -218,56 +252,10 @@ class _ReservationFormState extends State<ReservationForm> {
                 maxLines: 3,
               ),
               const SizedBox(height: 30),
-
-              // Tombol Konfirmasi
               ElevatedButton.icon(
+                onPressed: _submitReservation,
                 icon: const Icon(Icons.check, color: Colors.white),
-                // Di bagian onPressed tombol konfirmasi:
-                onPressed: () {
-                  if (_formKey.currentState!.validate() &&
-                      selectedDate != null &&
-                      selectedTime != null) {
-                    // Buat reservasi baru
-                    final newReservation = Reservation(
-                      id: DateTime.now().millisecondsSinceEpoch.toString(),
-                      restaurantName:
-                          "Resto Favorit", // atau ambil dari input user
-                      date: selectedDate!,
-                      time: selectedTime!,
-                      people: peopleCount,
-                      status: 'pending',
-                      notes: notesController.text, // tambahkan notes
-                    );
-
-                    // Simpan ke controller
-                    final reservationController =
-                        Get.find<ReservationController>();
-                    reservationController.addReservation(newReservation);
-
-                    // Navigasi ke invoice dan hapus semua route sebelumnya
-                    Get.offAll(
-                      () => InvoiceScreen(
-                        name: nameController.text,
-                        phone: phoneController.text,
-                        date: DateFormat('dd MMMM yyyy').format(selectedDate!),
-                        time: selectedTime!.format(context),
-                        people: peopleCount,
-                        notes: notesController.text,
-                        reservationId: newReservation.id,
-                      ),
-                    );
-                  } else {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text('Harap lengkapi semua data reservasi'),
-                      ),
-                    );
-                  }
-                },
-                label: const Text(
-                  "Konfirmasi Reservasi",
-                  style: TextStyle(color: Colors.white),
-                ),
+                label: const Text("Konfirmasi Reservasi"),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: const Color.fromRGBO(89, 255, 0, 1),
                   padding: const EdgeInsets.symmetric(vertical: 16),
@@ -283,9 +271,7 @@ class _ReservationFormState extends State<ReservationForm> {
     );
   }
 
-  bool isSameDay(DateTime date1, DateTime date2) {
-    return date1.year == date2.year &&
-        date1.month == date2.month &&
-        date1.day == date2.day;
+  bool isSameDay(DateTime d1, DateTime d2) {
+    return d1.year == d2.year && d1.month == d2.month && d1.day == d2.day;
   }
 }

@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../../controllers/reservation_controller.dart';
 import '../../../widgets/bottom_nav.dart';
-import '../../reservation/invoice_screen.dart';
 import '../../reservation/invoice_view_only_screen.dart';
 
 class DashboardUsersScreen extends StatefulWidget {
@@ -13,27 +12,27 @@ class DashboardUsersScreen extends StatefulWidget {
 }
 
 class _DashboardUsersScreenState extends State<DashboardUsersScreen> {
+  final reservationController = Get.find<ReservationController>();
+
+  @override
+  void initState() {
+    super.initState();
+    reservationController.fetchReservations();
+  }
+
   @override
   Widget build(BuildContext context) {
-    final ReservationController reservationController = Get.find();
-
     return Scaffold(
       appBar: AppBar(
         leading: Padding(
           padding: const EdgeInsets.all(8.0),
-          child: Image.asset(
-            "assets/images/Logo_White.png",
-            height: 10,
-            width: 10,
-            fit: BoxFit.cover,
-          ),
+          child: Image.asset("assets/images/Logo_White.png", fit: BoxFit.cover),
         ),
-        title: Text(
+        title: const Text(
           "Selamat Datang di Reservasiku",
           style: TextStyle(color: Colors.white),
         ),
         backgroundColor: const Color.fromRGBO(89, 255, 0, 1),
-        elevation: 4,
       ),
       body: Obx(() {
         final reservations = reservationController.reservations;
@@ -43,9 +42,7 @@ class _DashboardUsersScreenState extends State<DashboardUsersScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Banner welcome
               Container(
-                width: double.infinity,
                 padding: const EdgeInsets.all(20),
                 decoration: BoxDecoration(
                   color: const Color.fromRGBO(173, 255, 128, 1),
@@ -70,77 +67,74 @@ class _DashboardUsersScreenState extends State<DashboardUsersScreen> {
                 ),
               ),
               const SizedBox(height: 24),
-
-              // Reservasi Aktif
               const Text(
                 "Reservasi Aktif",
                 style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 12),
-
               if (reservations.isEmpty)
                 const Center(child: Text("Belum ada reservasi"))
               else
-                ...reservations.map((reservation) {
-                  return Card(
-                    elevation: 4,
-                    margin: const EdgeInsets.only(bottom: 12),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: ListTile(
-                      leading: Container(
-                        width: 8,
-                        height: 40,
-                        decoration: BoxDecoration(
-                          color: reservation.statusColor,
-                          borderRadius: BorderRadius.circular(4),
+                ListView.builder(
+                  shrinkWrap: true,
+                  physics: const NeverScrollableScrollPhysics(),
+                  itemCount: reservations.length,
+                  itemBuilder: (context, index) {
+                    final reservation = reservations[index];
+                    return Card(
+                      elevation: 4,
+                      margin: const EdgeInsets.only(bottom: 12),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: ListTile(
+                        leading: Container(
+                          width: 8,
+                          height: 40,
+                          decoration: BoxDecoration(
+                            color: reservation.statusColor,
+                            borderRadius: BorderRadius.circular(4),
+                          ),
                         ),
-                      ),
-                      title: Text(reservation.restaurantName),
-                      subtitle: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            "${reservation.formattedDate} - ${reservation.formattedTime}",
-                          ),
-                          Text("${reservation.people} Orang"),
-                          Text(
-                            "Status: ${reservation.status.toUpperCase()}",
-                            style: TextStyle(
-                              color: reservation.statusColor,
-                              fontWeight: FontWeight.bold,
+                        title: Text(reservation.namaPemesan),
+                        subtitle: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              "${reservation.formattedDate} - ${reservation.formattedTime}",
                             ),
-                          ),
-                        ],
-                      ),
-                      trailing: const Icon(Icons.arrow_forward_ios, size: 16),
-                      onTap: () {
-                        final currentReservation = reservation;
-                        final reservationDetail = reservationController
-                            .getReservationById(currentReservation.id);
-                        if (reservationDetail != null) {
+                            Text("${reservation.people} Orang"),
+                            Text(
+                              "Status: ${reservation.status.toUpperCase()}",
+                              style: TextStyle(
+                                color: reservation.statusColor,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ],
+                        ),
+                        trailing: const Icon(Icons.arrow_forward_ios, size: 16),
+                        onTap: () {
                           Get.to(
                             () => InvoiceViewOnlyScreen(
-                              name: "Nama User",
-                              phone: "Nomor Telepon",
-                              date: reservationDetail.formattedDate,
-                              time: reservationDetail.formattedTime,
-                              people: reservationDetail.people,
-                              notes: reservationDetail.notes ?? "",
-                              reservationId: reservationDetail.id,
-                              status: reservationDetail.status,
+                              name: reservation.namaPemesan,
+                              phone: reservation.telpPemesan,
+                              date: reservation.formattedDate,
+                              time: reservation.formattedTime,
+                              people: reservation.people,
+                              notes: reservation.notes ?? '',
+                              reservationId: reservation.id,
+                              status: reservation.status,
+                              totalHarga: reservation.totalHarga,
+                              imgPesanan:
+                                  reservation.imgPesanan, // ✅ KIRIM GAMBAR
                             ),
                           );
-                        }
-                      },
-                    ),
-                  );
-                }),
-
-              const SizedBox(height: 24),
-
-              // Button untuk buat reservasi baru
+                        },
+                      ),
+                    );
+                  },
+                ),
             ],
           ),
         );

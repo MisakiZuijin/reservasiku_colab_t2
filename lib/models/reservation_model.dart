@@ -2,45 +2,44 @@ import 'package:flutter/material.dart';
 
 class Reservation {
   final String id;
-  final String restaurantName;
+  final String namaPemesan;
+  final String telpPemesan;
   final DateTime date;
   final TimeOfDay time;
   final int people;
-  final String status; // 'pending', 'confirmed', 'rejected'
-  final String? paymentProofUrl;
-
-  final String? notes; // Tambahkan ini
+  final String status;
+  final String? notes;
+  final num totalHarga;
+  final String? imgPesanan; // ✅ TAMBAHKAN URL GAMBAR
 
   Reservation({
     required this.id,
-    required this.restaurantName,
+    required this.namaPemesan,
+    required this.telpPemesan,
     required this.date,
     required this.time,
     required this.people,
     required this.status,
-    this.paymentProofUrl,
-    this.notes, // Tambahkan ini
+    this.notes,
+    required this.totalHarga,
+    this.imgPesanan, // ✅
   });
 
-  // Helper method to get status color
   Color get statusColor {
     switch (status) {
-      case 'confirmed':
+      case 'Accept':
         return Colors.green;
-      case 'pending':
+      case 'Pending':
         return Colors.orange;
-      default:
+      case 'Reject':
         return Colors.red;
+      default:
+        return Colors.grey;
     }
   }
 
-  // Format date to string
-  String get formattedDate {
-    return '${date.day}/${date.month}/${date.year}';
-  }
+  String get formattedDate => '${date.day}/${date.month}/${date.year}';
 
-  // Format time to string
-  String get formattedTime {
-    return '${time.hour}:${time.minute.toString().padLeft(2, '0')}';
-  }
+  String get formattedTime =>
+      '${time.hour}:${time.minute.toString().padLeft(2, '0')}';
 }

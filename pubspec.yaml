@@ -64,7 +64,7 @@ flutter:
   assets:
   - assets/images/Logo_White.png
   - assets/images/Logo_Green.png
-  - assets/images/default_profile.png
+  - assets/images/qris.png
 
   # To add assets to your application, add an assets section, like this:
   # assets:
