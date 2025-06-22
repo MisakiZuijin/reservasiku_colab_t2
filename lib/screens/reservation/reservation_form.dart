@@ -28,7 +28,26 @@ class _ReservationFormState extends State<ReservationForm> {
       firstDate: DateTime.now(),
       lastDate: DateTime.now().add(const Duration(days: 365)),
     );
-    if (picked != null && picked != selectedDate) {
+    if (picked != null) {
+      // Jika memilih hari ini, pastikan waktu belum lewat
+      if (isSameDay(picked, DateTime.now())) {
+        final now = TimeOfDay.now();
+        if (selectedTime != null && selectedTime!.hour < now.hour ||
+            (selectedTime!.hour == now.hour &&
+                selectedTime!.minute <= now.minute)) {
+          // Reset waktu jika sudah lewat
+          setState(() {
+            selectedTime = null;
+          });
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text(
+                'Waktu yang dipilih sudah lewat, silakan pilih waktu lain',
+              ),
+            ),
+          );
+        }
+      }
       setState(() {
         selectedDate = picked;
       });
@@ -36,11 +55,40 @@ class _ReservationFormState extends State<ReservationForm> {
   }
 
   Future<void> _selectTime(BuildContext context) async {
-    final TimeOfDay? picked = await showTimePicker(
-      context: context,
-      initialTime: TimeOfDay.now(),
-    );
-    if (picked != null && picked != selectedTime) {
+    final now = DateTime.now();
+    final initialTime = TimeOfDay.now();
+
+    // Jika memilih hari ini, batasi waktu minimal
+    TimeOfDay? picked;
+    if (selectedDate != null && isSameDay(selectedDate!, now)) {
+      picked = await showTimePicker(
+        context: context,
+        initialTime: initialTime,
+        builder: (context, child) {
+          return MediaQuery(
+            data: MediaQuery.of(context).copyWith(alwaysUse24HourFormat: true),
+            child: child!,
+          );
+        },
+      );
+
+      // Validasi waktu tidak boleh kurang dari sekarang
+      if (picked != null &&
+          (picked.hour < initialTime.hour ||
+              (picked.hour == initialTime.hour &&
+                  picked.minute < initialTime.minute))) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Tidak bisa memilih waktu yang sudah lewat'),
+          ),
+        );
+        return;
+      }
+    } else {
+      picked = await showTimePicker(context: context, initialTime: initialTime);
+    }
+
+    if (picked != null) {
       setState(() {
         selectedTime = picked;
       });
@@ -233,5 +281,11 @@ class _ReservationFormState extends State<ReservationForm> {
         ),
       ),
     );
+  }
+
+  bool isSameDay(DateTime date1, DateTime date2) {
+    return date1.year == date2.year &&
+        date1.month == date2.month &&
+        date1.day == date2.day;
   }
 }

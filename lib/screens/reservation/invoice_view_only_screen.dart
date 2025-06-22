@@ -1,0 +1,131 @@
+import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
+
+class InvoiceViewOnlyScreen extends StatelessWidget {
+  final String name;
+  final String phone;
+  final String date;
+  final String time;
+  final int people;
+  final String notes;
+  final String reservationId;
+  final String status;
+
+  const InvoiceViewOnlyScreen({
+    super.key,
+    required this.name,
+    required this.phone,
+    required this.date,
+    required this.time,
+    required this.people,
+    required this.notes,
+    required this.reservationId,
+    required this.status,
+  });
+
+  String get totalPrice {
+    return NumberFormat.currency(
+      locale: 'id',
+      symbol: 'Rp ',
+      decimalDigits: 0,
+    ).format(people * 20000);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text("Detail Reservasi"),
+        backgroundColor: const Color.fromRGBO(89, 255, 0, 1),
+      ),
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Status
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: _getStatusColor(status),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Center(
+                child: Text(
+                  "Status: ${status.toUpperCase()}",
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 16,
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(height: 24),
+
+            // Detail Reservasi
+            Card(
+              elevation: 4,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      "Detail Reservasi",
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const Divider(),
+                    _buildDetailRow("Nama", name),
+                    _buildDetailRow("Nomor Telepon", phone),
+                    _buildDetailRow("Tanggal", date),
+                    _buildDetailRow("Waktu", time),
+                    _buildDetailRow("Jumlah Orang", "$people Orang"),
+                    if (notes.isNotEmpty) _buildDetailRow("Catatan", notes),
+                    _buildDetailRow("Total Pembayaran", totalPrice),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildDetailRow(String label, String value) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8),
+      child: Row(
+        children: [
+          SizedBox(
+            width: 120,
+            child: Text(
+              label,
+              style: const TextStyle(fontWeight: FontWeight.bold),
+            ),
+          ),
+          const Text(": "),
+          Expanded(child: Text(value)),
+        ],
+      ),
+    );
+  }
+
+  Color _getStatusColor(String status) {
+    switch (status) {
+      case 'confirmed':
+        return Colors.green;
+      case 'pending':
+        return Colors.orange;
+      default:
+        return Colors.red;
+    }
+  }
+}

@@ -4,7 +4,7 @@ import 'package:intl/intl.dart';
 import 'package:reservasiku_colab_t2/screens/home/users/dashboard_users.dart';
 import '../../controllers/reservation_controller.dart';
 
-class InvoiceScreen extends StatelessWidget {
+class InvoiceScreen extends StatefulWidget {
   final String name;
   final String phone;
   final String date;
@@ -24,12 +24,19 @@ class InvoiceScreen extends StatelessWidget {
     required this.reservationId,
   });
 
+  @override
+  State<InvoiceScreen> createState() => _InvoiceScreenState();
+}
+
+class _InvoiceScreenState extends State<InvoiceScreen> {
+  String? selectedPaymentMethod;
+
   String get totalPrice {
     return NumberFormat.currency(
       locale: 'id',
       symbol: 'Rp ',
       decimalDigits: 0,
-    ).format(people * 20000);
+    ).format(widget.people * 20000);
   }
 
   @override
@@ -79,12 +86,13 @@ class InvoiceScreen extends StatelessWidget {
                       ),
                     ),
                     const Divider(),
-                    _buildDetailRow("Nama", name),
-                    _buildDetailRow("Nomor Telepon", phone),
-                    _buildDetailRow("Tanggal", date),
-                    _buildDetailRow("Waktu", time),
-                    _buildDetailRow("Jumlah Orang", "$people Orang"),
-                    if (notes.isNotEmpty) _buildDetailRow("Catatan", notes),
+                    _buildDetailRow("Nama", widget.name),
+                    _buildDetailRow("Nomor Telepon", widget.phone),
+                    _buildDetailRow("Tanggal", widget.date),
+                    _buildDetailRow("Waktu", widget.time),
+                    _buildDetailRow("Jumlah Orang", "${widget.people} Orang"),
+                    if (widget.notes.isNotEmpty)
+                      _buildDetailRow("Catatan", widget.notes),
                   ],
                 ),
               ),
@@ -128,10 +136,16 @@ class InvoiceScreen extends StatelessWidget {
                       style: TextStyle(fontSize: 16),
                     ),
                     const SizedBox(height: 8),
-                    // Metode Pembayaran
-                    _buildPaymentMethod("QRIS", Icons.qr_code),
-                    _buildPaymentMethod("Transfer Bank", Icons.account_balance),
-                    _buildPaymentMethod("Tunai di Tempat", Icons.money),
+                    // Metode Pembayaran baru
+                    _buildPaymentOption("QRIS", "assets/images/qris.png"),
+                    _buildPaymentOption(
+                      "Transfer Bank",
+                      "assets/images/bank.png",
+                    ),
+                    _buildPaymentOption(
+                      "Tunai di Tempat",
+                      "assets/images/cash.png",
+                    ),
                   ],
                 ),
               ),
@@ -181,15 +195,24 @@ class InvoiceScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildPaymentMethod(String method, IconData icon) {
+  Widget _buildPaymentOption(String method, String iconPath) {
     return Card(
       margin: const EdgeInsets.symmetric(vertical: 8),
-      clipBehavior: Clip.antiAlias,
-      child: ListTile(
-        leading: Icon(icon),
-        title: Text(method),
-        trailing: const Icon(Icons.arrow_forward_ios),
-        onTap: () {},
+      child: RadioListTile<String>(
+        title: Row(
+          children: [
+            Image.asset(iconPath, width: 30, height: 30),
+            const SizedBox(width: 10),
+            Text(method),
+          ],
+        ),
+        value: method,
+        groupValue: selectedPaymentMethod,
+        onChanged: (value) {
+          setState(() {
+            selectedPaymentMethod = value;
+          });
+        },
       ),
     );
   }
@@ -278,7 +301,7 @@ class InvoiceScreen extends StatelessWidget {
                         final reservationController =
                             Get.find<ReservationController>();
                         reservationController.updateReservationStatus(
-                          reservationId,
+                          widget.reservationId,
                           'pending',
                         );
 

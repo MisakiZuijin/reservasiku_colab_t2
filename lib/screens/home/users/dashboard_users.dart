@@ -3,6 +3,7 @@ import 'package:get/get.dart';
 import '../../../controllers/reservation_controller.dart';
 import '../../../widgets/bottom_nav.dart';
 import '../../reservation/invoice_screen.dart';
+import '../../reservation/invoice_view_only_screen.dart';
 
 class DashboardUsersScreen extends StatefulWidget {
   const DashboardUsersScreen({super.key});
@@ -115,25 +116,20 @@ class _DashboardUsersScreenState extends State<DashboardUsersScreen> {
                       ),
                       trailing: const Icon(Icons.arrow_forward_ios, size: 16),
                       onTap: () {
-                        // Navigasi ke detail invoice
-                        final currentReservation =
-                            reservation; // Rename variable untuk menghindari conflict
+                        final currentReservation = reservation;
                         final reservationDetail = reservationController
                             .getReservationById(currentReservation.id);
                         if (reservationDetail != null) {
                           Get.to(
-                            () => InvoiceScreen(
-                              name:
-                                  "Nama User", // Ganti dengan data user sebenarnya
-                              phone:
-                                  "Nomor Telepon", // Ganti dengan data user sebenarnya
+                            () => InvoiceViewOnlyScreen(
+                              name: "Nama User",
+                              phone: "Nomor Telepon",
                               date: reservationDetail.formattedDate,
                               time: reservationDetail.formattedTime,
                               people: reservationDetail.people,
-                              notes:
-                                  reservationDetail.notes ??
-                                  "", // Gunakan notes dari reservasi
+                              notes: reservationDetail.notes ?? "",
                               reservationId: reservationDetail.id,
+                              status: reservationDetail.status,
                             ),
                           );
                         }
