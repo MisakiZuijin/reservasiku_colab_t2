@@ -152,8 +152,28 @@ class _ReservationFormState extends State<ReservationForm> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Form Reservasi"),
         backgroundColor: const Color.fromRGBO(89, 255, 0, 1),
+        automaticallyImplyLeading: true,
+        iconTheme: const IconThemeData(
+          color: Colors.white,
+        ), // back button putih
+        titleSpacing: 0,
+        title: Row(
+          children: [
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 8),
+              child: Image.asset(
+                "assets/images/Logo_White.png",
+                height: 30,
+                width: 30,
+              ),
+            ),
+            const Text(
+              "Form Reservasi",
+              style: TextStyle(color: Colors.white, fontSize: 16),
+            ),
+          ],
+        ),
       ),
       body: Form(
         key: _formKey,
@@ -258,6 +278,7 @@ class _ReservationFormState extends State<ReservationForm> {
                 label: const Text("Konfirmasi Reservasi"),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: const Color.fromRGBO(89, 255, 0, 1),
+                  foregroundColor: Colors.white,
                   padding: const EdgeInsets.symmetric(vertical: 16),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12),

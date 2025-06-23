@@ -50,9 +50,9 @@ class InvoiceViewOnlyScreen extends StatelessWidget {
       );
       Navigator.of(context).pop(); // Kembali ke dashboard admin
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Gagal mengubah status')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Gagal mengubah status')));
     }
   }
 
@@ -60,8 +60,26 @@ class InvoiceViewOnlyScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Detail Reservasi"),
         backgroundColor: const Color.fromRGBO(89, 255, 0, 1),
+        automaticallyImplyLeading: true,
+        iconTheme: const IconThemeData(color: Colors.white),
+        titleSpacing: 0,
+        title: Row(
+          children: [
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 8),
+              child: Image.asset(
+                "assets/images/Logo_White.png",
+                height: 30,
+                width: 30,
+              ),
+            ),
+            const Text(
+              "Detail Reservasi",
+              style: TextStyle(color: Colors.white, fontSize: 16),
+            ),
+          ],
+        ),
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
@@ -146,6 +164,7 @@ class InvoiceViewOnlyScreen extends StatelessWidget {
                     child: ElevatedButton(
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.green,
+                        foregroundColor: Colors.white,
                       ),
                       onPressed: () => _updateStatus(context, 'Accept'),
                       child: const Text('Terima'),
@@ -156,6 +175,7 @@ class InvoiceViewOnlyScreen extends StatelessWidget {
                     child: ElevatedButton(
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.red,
+                        foregroundColor: Colors.white,
                       ),
                       onPressed: () => _updateStatus(context, 'Reject'),
                       child: const Text('Tolak'),

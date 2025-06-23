@@ -98,8 +98,26 @@ class _InvoiceScreenState extends State<InvoiceScreen> {
     }
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Invoice Reservasi"),
         backgroundColor: const Color.fromRGBO(89, 255, 0, 1),
+        automaticallyImplyLeading: true,
+        iconTheme: const IconThemeData(color: Colors.white),
+        titleSpacing: 0,
+        title: Row(
+          children: [
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 8),
+              child: Image.asset(
+                "assets/images/Logo_White.png",
+                height: 30,
+                width: 30,
+              ),
+            ),
+            const Text(
+              "Invoice Reservasi",
+              style: TextStyle(color: Colors.white, fontSize: 16),
+            ),
+          ],
+        ),
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
