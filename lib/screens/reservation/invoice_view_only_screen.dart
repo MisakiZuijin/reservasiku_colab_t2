@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import '../../utils/supabase_client.dart'; // Tambahkan ini
 
 class InvoiceViewOnlyScreen extends StatelessWidget {
   final String name;
@@ -11,7 +12,8 @@ class InvoiceViewOnlyScreen extends StatelessWidget {
   final String reservationId;
   final String status;
   final num totalHarga;
-  final String? imgPesanan; // ✅ TAMBAHKAN URL GAMBAR
+  final String? imgPesanan;
+  final bool isAdmin; // Tambahkan ini
 
   const InvoiceViewOnlyScreen({
     super.key,
@@ -24,7 +26,8 @@ class InvoiceViewOnlyScreen extends StatelessWidget {
     required this.reservationId,
     required this.status,
     required this.totalHarga,
-    this.imgPesanan, // ✅
+    this.imgPesanan,
+    this.isAdmin = false, // Default false
   });
 
   String get formattedTotalHarga {
@@ -33,6 +36,24 @@ class InvoiceViewOnlyScreen extends StatelessWidget {
       symbol: 'Rp ',
       decimalDigits: 0,
     ).format(totalHarga);
+  }
+
+  Future<void> _updateStatus(BuildContext context, String newStatus) async {
+    try {
+      final supabase = SupabaseConfig.client;
+      await supabase
+          .from('Reservasi')
+          .update({'konfirmasi_pesanan': newStatus})
+          .eq('id_reservasi', reservationId);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Status berhasil diubah menjadi $newStatus')),
+      );
+      Navigator.of(context).pop(); // Kembali ke dashboard admin
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Gagal mengubah status')),
+      );
+    }
   }
 
   @override
@@ -116,6 +137,33 @@ class InvoiceViewOnlyScreen extends StatelessWidget {
                   ),
                 ],
               ),
+            // === TOMBOL KONFIRMASI ADMIN ===
+            if (isAdmin && status.toLowerCase() == 'pending') ...[
+              const SizedBox(height: 32),
+              Row(
+                children: [
+                  Expanded(
+                    child: ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.green,
+                      ),
+                      onPressed: () => _updateStatus(context, 'Accept'),
+                      child: const Text('Terima'),
+                    ),
+                  ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.red,
+                      ),
+                      onPressed: () => _updateStatus(context, 'Reject'),
+                      child: const Text('Tolak'),
+                    ),
+                  ),
+                ],
+              ),
+            ],
           ],
         ),
       ),
