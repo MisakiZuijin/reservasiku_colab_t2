@@ -6,7 +6,6 @@ import '../../screens/auth/register.dart';
 import '../../screens/home/admin/dashboard_admin.dart';
 import '../../screens/home/users/dashboard_users.dart';
 import '../../screens/profile/profile.dart';
-import '../../screens/stats/stats.dart';
 import '../../screens/auth/forgot_password.dart';
 
 class AppRoutes {
@@ -16,7 +15,6 @@ class AppRoutes {
   static const String admin = '/admin';
   static const String users = '/user';
   static const String profile = '/profile';
-  static const String stats = '/stats';
   static const String forgotPassword = '/forgot-password';
   static const String resetPassword = '/reset-password';
 
@@ -35,7 +33,6 @@ class AppRoutes {
     GetPage(name: admin, page: () => const DashboardAdminScreen()),
     GetPage(name: users, page: () => const DashboardUsersScreen()),
     GetPage(name: profile, page: () => const ProfileScreen()),
-    GetPage(name: stats, page: () => const StatsScreen()),
     GetPage(
       name: forgotPassword,
       page: () => const ForgotPasswordScreen(),

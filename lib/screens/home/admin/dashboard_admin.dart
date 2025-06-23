@@ -14,50 +14,11 @@ class DashboardAdminScreen extends StatefulWidget {
 class _DashboardAdminScreenState extends State<DashboardAdminScreen> {
   final reservationController = Get.find<ReservationController>();
 
-  // Tambahkan dummy data untuk notifikasi
-  final List<Map<String, dynamic>> dummyReservations = [
-    {
-      'namaPemesan': 'Budi Santoso',
-      'telpPemesan': '081234567890',
-      'formattedDate': '23/06/2025',
-      'formattedTime': '19:00',
-      'people': 4,
-      'notes': 'Meja dekat jendela',
-      'id': 'RSV001',
-      'status': 'Pending',
-      'totalHarga': 250000,
-      'imgPesanan': null,
-    },
-    {
-      'namaPemesan': 'Siti Aminah',
-      'telpPemesan': '082345678901',
-      'formattedDate': '24/06/2025',
-      'formattedTime': '20:00',
-      'people': 2,
-      'notes': '',
-      'id': 'RSV002',
-      'status': 'Accept',
-      'totalHarga': 150000,
-      'imgPesanan': null,
-    },
-    {
-      'namaPemesan': 'Andi Wijaya',
-      'telpPemesan': '083456789012',
-      'formattedDate': '25/06/2025',
-      'formattedTime': '18:30',
-      'people': 6,
-      'notes': 'Ulang tahun',
-      'id': 'RSV003',
-      'status': 'Reject',
-      'totalHarga': 400000,
-      'imgPesanan': null,
-    },
-  ];
-
   @override
   void initState() {
     super.initState();
-    reservationController.fetchReservations();
+    reservationController
+        .fetchAllReservations(); // Ambil semua reservasi (khusus admin)
   }
 
   @override
@@ -75,11 +36,7 @@ class _DashboardAdminScreenState extends State<DashboardAdminScreen> {
         backgroundColor: const Color.fromRGBO(89, 255, 0, 1),
       ),
       body: Obx(() {
-        final reservations = reservationController.reservations;
-
-        // Jika tidak ada reservasi dari controller, tampilkan dummy
-        final showDummy = reservations.isEmpty;
-        final List dataList = showDummy ? dummyReservations : reservations;
+        final reservations = reservationController.allReservations;
 
         return SingleChildScrollView(
           padding: const EdgeInsets.all(16),
@@ -104,7 +61,7 @@ class _DashboardAdminScreenState extends State<DashboardAdminScreen> {
                     ),
                     SizedBox(height: 10),
                     Text(
-                      "Kelola reservasi, data user, dan laporan dengan mudah.",
+                      "Kelola reservasi pengguna dengan mudah.",
                       style: TextStyle(fontSize: 14),
                     ),
                   ],
@@ -112,65 +69,19 @@ class _DashboardAdminScreenState extends State<DashboardAdminScreen> {
               ),
               const SizedBox(height: 24),
               const Text(
-                "Notifikasi Reservasi User",
+                "Semua Reservasi Pengguna",
                 style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 12),
-              if (dataList.isEmpty)
-                const Center(child: Text("Belum ada reservasi"))
+              if (reservations.isEmpty)
+                const Center(child: Text("Belum ada reservasi."))
               else
                 ListView.builder(
                   shrinkWrap: true,
                   physics: const NeverScrollableScrollPhysics(),
-                  itemCount: dataList.length,
+                  itemCount: reservations.length,
                   itemBuilder: (context, index) {
-                    final reservation = dataList[index];
-                    // Untuk dummy, gunakan Map, untuk asli gunakan model
-                    final namaPemesan = reservation is Map
-                        ? reservation['namaPemesan']
-                        : reservation.namaPemesan;
-                    final telpPemesan = reservation is Map
-                        ? reservation['telpPemesan']
-                        : reservation.telpPemesan;
-                    final formattedDate = reservation is Map
-                        ? reservation['formattedDate']
-                        : reservation.formattedDate;
-                    final formattedTime = reservation is Map
-                        ? reservation['formattedTime']
-                        : reservation.formattedTime;
-                    final people = reservation is Map
-                        ? reservation['people']
-                        : reservation.people;
-                    final notes = reservation is Map
-                        ? reservation['notes']
-                        : reservation.notes ?? '';
-                    final id = reservation is Map
-                        ? reservation['id']
-                        : reservation.id;
-                    final status = reservation is Map
-                        ? reservation['status']
-                        : reservation.status;
-                    final totalHarga = reservation is Map
-                        ? reservation['totalHarga']
-                        : reservation.totalHarga;
-                    final imgPesanan = reservation is Map
-                        ? reservation['imgPesanan']
-                        : reservation.imgPesanan;
-
-                    Color statusColor;
-                    switch (status.toString().toLowerCase()) {
-                      case 'accept':
-                        statusColor = Colors.green;
-                        break;
-                      case 'pending':
-                        statusColor = Colors.orange;
-                        break;
-                      case 'reject':
-                        statusColor = Colors.red;
-                        break;
-                      default:
-                        statusColor = Colors.grey;
-                    }
+                    final reservation = reservations[index];
 
                     return Card(
                       elevation: 4,
@@ -183,22 +94,22 @@ class _DashboardAdminScreenState extends State<DashboardAdminScreen> {
                           width: 8,
                           height: 40,
                           decoration: BoxDecoration(
-                            color: statusColor,
+                            color: reservation.statusColor,
                             borderRadius: BorderRadius.circular(4),
                           ),
                         ),
-                        title: Text(namaPemesan),
+                        title: Text(reservation.namaPemesan),
                         subtitle: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              "$formattedDate - $formattedTime",
+                              "${reservation.formattedDate} - ${reservation.formattedTime}",
                             ),
-                            Text("$people Orang"),
+                            Text("${reservation.people} Orang"),
                             Text(
-                              "Status: ${status.toString().toUpperCase()}",
+                              "Status: ${reservation.status.toUpperCase()}",
                               style: TextStyle(
-                                color: statusColor,
+                                color: reservation.statusColor,
                                 fontWeight: FontWeight.bold,
                               ),
                             ),
@@ -208,19 +119,22 @@ class _DashboardAdminScreenState extends State<DashboardAdminScreen> {
                         onTap: () {
                           Get.to(
                             () => InvoiceViewOnlyScreen(
-                              name: namaPemesan,
-                              phone: telpPemesan,
-                              date: formattedDate,
-                              time: formattedTime,
-                              people: people,
-                              notes: notes ?? '',
-                              reservationId: id,
-                              status: status,
-                              totalHarga: totalHarga,
-                              imgPesanan: imgPesanan,
+                              name: reservation.namaPemesan,
+                              phone: reservation.telpPemesan,
+                              date: reservation.formattedDate,
+                              time: reservation.formattedTime,
+                              people: reservation.people,
+                              notes: reservation.notes ?? '',
+                              reservationId: reservation.id,
+                              status: reservation.status,
+                              totalHarga: reservation.totalHarga,
+                              imgPesanan: reservation.imgPesanan,
                               isAdmin: true,
                             ),
-                          );
+                          )?.then((_) {
+                            reservationController
+                                .fetchAllReservations(); // ✅ Refresh saat kembali
+                          });
                         },
                       ),
                     );
