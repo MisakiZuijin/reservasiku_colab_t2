@@ -6,6 +6,7 @@ import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
 import '../../controllers/nav_controller.dart';
 import '../../services/auth_service.dart';
+import '../../services/session_service.dart';
 import '../../utils/app_route.dart';
 import '../../utils/supabase_client.dart';
 import '../../widgets/bottom_nav.dart';
@@ -111,6 +112,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   Future<void> _logout() async {
     await _authService.logout();
+    SessionService().clearLogin();
     final navController = Get.find<NavController>();
     navController.handleLogout();
     Get.offAllNamed(AppRoutes.login);

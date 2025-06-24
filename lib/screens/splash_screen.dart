@@ -3,6 +3,8 @@ import 'dart:async';
 import 'package:get/get.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../utils/app_route.dart';
+import '../services/session_service.dart';
+import '../services/auth_service.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -13,6 +15,7 @@ class SplashScreen extends StatefulWidget {
 
 class _SplashScreenState extends State<SplashScreen>
     with SingleTickerProviderStateMixin {
+  final sessionService = SessionService();
   late AnimationController _animationController;
   late Animation<double> _fadeAnimation;
 
@@ -46,11 +49,27 @@ class _SplashScreenState extends State<SplashScreen>
     }
 
     final session = Supabase.instance.client.auth.currentSession;
+
     if (session != null) {
+      // ✅ Sudah login aktif
       Get.offAllNamed(AppRoutes.users);
-    } else {
-      Get.offAllNamed(AppRoutes.login);
+      return;
     }
+
+    final sessionService = SessionService();
+    if (sessionService.isRemembered()) {
+      final saved = sessionService.getSavedLogin();
+      final auth = AuthService();
+      final error = await auth.login(saved['email']!, saved['password']!);
+
+      if (error == null) {
+        final role = await auth.getUserRole();
+        Get.offAllNamed(role == 'Admin' ? AppRoutes.admin : AppRoutes.users);
+        return;
+      }
+    }
+
+    Get.offAllNamed(AppRoutes.login);
   }
 
   @override

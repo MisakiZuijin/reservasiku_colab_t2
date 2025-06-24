@@ -4,6 +4,7 @@ import 'package:reservasiku_colab_t2/screens/stats/StatsAdminScreen.dart';
 import '../controllers/nav_controller.dart';
 import '../screens/home/admin/dashboard_admin.dart';
 import '../services/auth_service.dart';
+import '../services/session_service.dart';
 import '../utils/app_route.dart';
 
 class BottomNavAdmin extends StatelessWidget {
@@ -25,6 +26,7 @@ class BottomNavAdmin extends StatelessWidget {
         case 2:
           // Logout dan kembali ke login
           await AuthService().logout();
+          SessionService().clearLogin();
           navController.handleLogout();
           Get.offAllNamed(AppRoutes.login);
           break;
@@ -63,7 +65,8 @@ class BottomNavAdmin extends StatelessWidget {
                     IconButton(
                       icon: Icon(
                         Icons.home,
-                        color: currentIndex == 0 ? Colors.white : Colors.white70,
+                        color:
+                            currentIndex == 0 ? Colors.white : Colors.white70,
                       ),
                       onPressed: () => _handleNavigation(0),
                     ),
@@ -71,7 +74,8 @@ class BottomNavAdmin extends StatelessWidget {
                     IconButton(
                       icon: Icon(
                         Icons.logout, // Ganti icon person menjadi logout
-                        color: currentIndex == 2 ? Colors.white : Colors.white70,
+                        color:
+                            currentIndex == 2 ? Colors.white : Colors.white70,
                       ),
                       onPressed: () => _handleNavigation(2),
                     ),
@@ -93,35 +97,37 @@ class BottomNavAdmin extends StatelessWidget {
                     transitionBuilder:
                         (child, animation) =>
                             ScaleTransition(scale: animation, child: child),
-                    child: isProfile
-                        ? CircleAvatar(
-                            key: const ValueKey("profile"),
-                            radius: 30,
-                            backgroundColor: const Color.fromARGB(
-                              0,
-                              255,
-                              255,
-                              255,
-                            ),
-                          )
-                        : Container(
-                            key: const ValueKey("report"),
-                            width: 60,
-                            height: 60,
-                            decoration: BoxDecoration(
-                              shape: BoxShape.circle,
-                              color: navColor,
-                              border: Border.all(
+                    child:
+                        isProfile
+                            ? CircleAvatar(
+                              key: const ValueKey("profile"),
+                              radius: 30,
+                              backgroundColor: const Color.fromARGB(
+                                0,
+                                255,
+                                255,
+                                255,
+                              ),
+                            )
+                            : Container(
+                              key: const ValueKey("report"),
+                              width: 60,
+                              height: 60,
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                color: navColor,
+                                border: Border.all(
+                                  color: Colors.white,
+                                  width: 5,
+                                ),
+                              ),
+                              child: const Icon(
+                                Icons
+                                    .bar_chart, // Ganti icon + menjadi bar_chart
+                                size: 30,
                                 color: Colors.white,
-                                width: 5,
                               ),
                             ),
-                            child: const Icon(
-                              Icons.bar_chart, // Ganti icon + menjadi bar_chart
-                              size: 30,
-                              color: Colors.white,
-                            ),
-                          ),
                   ),
                 ),
               ),

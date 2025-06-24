@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../utils/app_route.dart';
 import '../../services/auth_service.dart';
+import '../../services/session_service.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -14,6 +15,7 @@ class _LoginScreenState extends State<LoginScreen> {
   final _formKey = GlobalKey<FormState>();
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
+  final sessionService = SessionService();
   bool _obscurePassword = true;
   bool _rememberMe = false;
 
@@ -32,6 +34,13 @@ class _LoginScreenState extends State<LoginScreen> {
       final error = await auth.login(email, password);
 
       if (error == null) {
+        final sessionService = SessionService();
+        if (_rememberMe) {
+          sessionService.saveLogin(email, password);
+        } else {
+          sessionService.clearLogin();
+        }
+
         final role = await auth.getUserRole();
 
         if (role == 'Admin') {

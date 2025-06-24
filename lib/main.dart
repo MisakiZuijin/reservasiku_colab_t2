@@ -3,6 +3,7 @@ import 'package:reservasiku_colab_t2/controllers/reservation_controller.dart';
 import 'package:reservasiku_colab_t2/controllers/nav_controller.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:get/get.dart';
+import 'package:get_storage/get_storage.dart';
 import 'utils/app_route.dart';
 import 'utils/supabase_client.dart';
 
@@ -10,6 +11,7 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   await SupabaseConfig.init();
+  await GetStorage.init();
 
   Get.put(NavController());
   Get.put(ReservationController());
